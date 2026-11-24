@@ -41,12 +41,17 @@ const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 // rejected entry: UTF-8 text, 1–120 characters, not whitespace-only,
 // exactly one line (no newline at all), no leading/trailing whitespace
 // that would pad the judged text. The line is 73 characters.
+// Extra invariant: the line must be pure ASCII, so its byte length
+// equals its character length (73 bytes) — the 73-byte size is the
+// tie-break asset documented above, and a multibyte character smuggled
+// in by a later edit would silently break it.
 if (
   LINE.length < 1 ||
   LINE.length > 120 ||
   LINE.trim() === '' ||
   LINE !== LINE.trim() ||
-  /[\r\n]/.test(LINE)
+  /[\r\n]/.test(LINE) ||
+  Buffer.byteLength(LINE, 'utf8') !== LINE.length
 ) {
   throw new Error(`entry violates the gate: ${LINE.length} chars`);
 }
